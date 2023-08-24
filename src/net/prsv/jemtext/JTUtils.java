@@ -11,6 +11,7 @@ public class JTUtils
     static {
 
         // Characters to be escaped in Markdown: https://www.markdownguide.org/basic-syntax/#escaping-characters
+        mdChars.put('\u0000', "\ufffd");
         mdChars.put('\\', "\\\\");
         mdChars.put('`', "\\`");
         mdChars.put('*', "\\*");
@@ -28,12 +29,14 @@ public class JTUtils
         mdChars.put('-', "\\-");
         
         // HTML escaping
+        htmlChars.put('\u0000', "\ufffd");
         htmlChars.put('\u0026', "&amp;");
         htmlChars.put('\u003C', "&lt;");
         htmlChars.put('\u003E', "&gt;");
         htmlChars.put('\u0022', "&quot;");
         htmlChars.put('\'', "&apos;");
 
+        fullChars.put('\u0000', "\ufffd");
         fullChars.put('\u0026', "&amp;");
         fullChars.put('\u003C', "&lt;");
         fullChars.put('\u003E', "&gt;");
