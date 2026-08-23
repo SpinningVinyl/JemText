@@ -315,17 +315,20 @@ public class JemParser {
             return null;
         }
         StringBuilder output = new StringBuilder();
-        tokenStream
-                .forEach(token -> {
+        String fence = "```";
+        for (int i = 0; i < tokenStream.size(); i++) {
+            JemToken token = tokenStream.get(i);
                     switch(token.type) {
                         case JT_PRE_BEGIN:
-                            output.append("```");
+                            fence = markdownFence(i);
+                            output.append(fence);
                             if (null != token.text && token.text.length() > 0)
                                 output.append(token.text);
                             output.append('\n');
                             break;
                         case JT_PRE_END:
-                            output.append("```\n");
+                            output.append(fence);
+                            output.append('\n');
                             break;
                         case JT_LINK:
                             Matcher m = IMAGE_URL_PATTERN.matcher(token.link.url);
@@ -361,7 +364,7 @@ public class JemParser {
                             break;
                         case JT_PRE_TEXT:
                             if (token.text != null) {
-                                output.append(token.text.replace("`", "``"));
+                                output.append(token.text);
                                 output.append('\n');
                             }
                             break;
@@ -374,12 +377,36 @@ public class JemParser {
                         case JT_HR:
                             output.append("---\n\n");
                     }
-                });
+        }
         return output.toString();
     }
 
     public String markdown() {
         return markdown(true);
+    }
+
+    private String markdownFence(int startIndex) {
+        int longestRun = 0;
+        for (int i = startIndex + 1; i < tokenStream.size(); i++) {
+            JemToken token = tokenStream.get(i);
+            if (token.type == JemToken.Type.JT_PRE_END) {
+                break;
+            }
+            if (token.type != JemToken.Type.JT_PRE_TEXT || token.text == null) {
+                continue;
+            }
+            int run = 0;
+            for (int j = 0; j < token.text.length(); j++) {
+                if (token.text.charAt(j) == '`') {
+                    run++;
+                } else {
+                    longestRun = Math.max(longestRun, run);
+                    run = 0;
+                }
+            }
+            longestRun = Math.max(longestRun, run);
+        }
+        return "`".repeat(Math.max(3, longestRun + 1));
     }
 
     // create a heading ID

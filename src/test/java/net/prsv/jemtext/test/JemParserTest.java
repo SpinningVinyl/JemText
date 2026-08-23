@@ -194,10 +194,27 @@ public class JemParserTest {
     @Test
     public void markdown_pre() throws Exception {
         String testInput = "```bash\n" +
+                "echo `date`\n" +
+                "youtube-dl -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio' --merge-output-format mp4 \"$@\"\n" +
+                "```\n";
+        String expectedOutput = "```bash\n" +
+                "echo `date`\n" +
                 "youtube-dl -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio' --merge-output-format mp4 \"$@\"\n" +
                 "```\n";
         jemParser.parse(testInput);
-        assertEquals(testInput, jemParser.markdown());
+        assertEquals(expectedOutput, jemParser.markdown());
+    }
+
+    @Test
+    public void markdown_preLongerFence() throws Exception {
+        String testInput = "```\n" +
+                "  ```\n" +
+                "```\n";
+        String expectedOutput = "````\n" +
+                "  ```\n" +
+                "````\n";
+        jemParser.parse(testInput);
+        assertEquals(expectedOutput, jemParser.markdown());
     }
 
     @Test
