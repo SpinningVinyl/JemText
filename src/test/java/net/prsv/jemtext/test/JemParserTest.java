@@ -1,18 +1,20 @@
 package net.prsv.jemtext.test;
 
 import net.prsv.jemtext.JemParser;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class JemParserTest {
     private JemParser jemParser;
 
-    @org.junit.Before
+    @BeforeEach
     public void setup() {
         jemParser = new JemParser();
     }
 
-    @org.junit.Test
+    @Test
     public void html_list() throws Exception {
         String testInput = "* List Item 1\n" +
                 "* List Item 2\n" +
@@ -27,7 +29,7 @@ public class JemParserTest {
         assertEquals(expectedOutput, jemParser.html());
     }
 
-    @org.junit.Test
+    @Test
     public void html_pre() throws Exception {
         String testInput = "```Pre examples\n" +
                 "This is pre text\n" +
@@ -50,12 +52,12 @@ public class JemParserTest {
         assertEquals(expectedOutput,jemParser.html());
     }
 
-    @org.junit.Test
+    @Test
     public void html_passthru() throws Exception {
-        String testInput = "+++\n" +
+        String testInput = "+++++\n" +
                 "<h1>An example of HTML pass-through</h1>\n" +
                 "<a href=\"https://example.org/test.php?q=a&p=b\">This is a link</a>\n" +
-                "+++\n";
+                "+++++\n";
         String expectedOutput = "<!-- begin HTML pass-through -->\n" +
                 "<h1>An example of HTML pass-through</h1>\n" +
                 "<a href=\"https://example.org/test.php?q=a&p=b\">This is a link</a>\n" +
@@ -64,7 +66,7 @@ public class JemParserTest {
         assertEquals(expectedOutput,jemParser.html());
     }
 
-    @org.junit.Test
+    @Test
     public void html_hr() throws Exception {
         String testInput = "===";
         String expectedOutput = "<hr />\n";
@@ -72,7 +74,7 @@ public class JemParserTest {
         assertEquals(expectedOutput, jemParser.html());
     }
 
-    @org.junit.Test
+    @Test
     public void html_linkAltText() throws Exception {
         String testInput = "=> https://example.org/ This is an example of a hyperlink";
         String expectedOutput = "<a class=\"jt-link\" href=\"https://example.org/\">This is an example of a hyperlink</a>\n";
@@ -80,7 +82,7 @@ public class JemParserTest {
         assertEquals(expectedOutput, jemParser.html());
     }
 
-    @org.junit.Test
+    @Test
     public void html_linkNoAltText() throws Exception {
         String testInput = "=> https://example.org/";
         String expectedOutput = "<a class=\"jt-link\" href=\"https://example.org/\">https://example.org/</a>\n";
@@ -88,7 +90,7 @@ public class JemParserTest {
         assertEquals(expectedOutput, jemParser.html());
     }
 
-    @org.junit.Test
+    @Test
     public void html_linkExpandedImageJpg() throws Exception {
         String testInput = "=> https://example.org/cat.jpg Alt text";
         String expectedOutput = "<img class=\"jt-image\" src=\"https://example.org/cat.jpg\" alt=\"Alt text\" title=\"Alt text\" />\n";
@@ -96,7 +98,7 @@ public class JemParserTest {
         assertEquals(expectedOutput, jemParser.html(false, true, false));
     }
 
-    @org.junit.Test
+    @Test
     public void html_linkExpandedImageGif() throws Exception {
         String testInput = "=> https://example.org/cat.gif Alt text";
         String expectedOutput = "<img class=\"jt-image\" src=\"https://example.org/cat.gif\" alt=\"Alt text\" title=\"Alt text\" />\n";
@@ -104,7 +106,7 @@ public class JemParserTest {
         assertEquals(expectedOutput, jemParser.html(false, true, false));
     }
 
-    @org.junit.Test
+    @Test
     public void html_linkExpandedImagePng() throws Exception {
         String testInput = "=> https://example.org/cat.png Alt text";
         String expectedOutput = "<img class=\"jt-image\" src=\"https://example.org/cat.png\" alt=\"Alt text\" title=\"Alt text\" />\n";
@@ -112,7 +114,7 @@ public class JemParserTest {
         assertEquals(expectedOutput, jemParser.html(false, true, false));
     }
 
-    @org.junit.Test
+    @Test
     public void html_linkExpandedImageJpgWithLink() throws Exception {
         String testInput = "=> https://example.org/cat.jpg Alt text";
         String expectedOutput = "<a href=\"https://example.org/cat.jpg\">\n" +
@@ -122,7 +124,7 @@ public class JemParserTest {
         assertEquals(expectedOutput, jemParser.html(false, true, true));
     }
 
-    @org.junit.Test
+    @Test
     public void html_headings() throws Exception {
         String testInput = "# Heading Level 1\n" +
                 "## Heading Level 2\n" +
@@ -136,13 +138,13 @@ public class JemParserTest {
         assertEquals(expectedOutput, jemParser.html());
     }
 
-    @org.junit.Test
+    @Test
     public void html_null() throws Exception {
         jemParser.parse(null);
         assertNull(jemParser.html());
     }
 
-    @org.junit.Test
+    @Test
     public void title() throws Exception {
         String testInput = "First line of a Gemtext document\n" +
                 "# Expected title\n" +
@@ -154,7 +156,7 @@ public class JemParserTest {
         assertEquals("Expected title", jemParser.title());
     }
 
-    @org.junit.Test
+    @Test
     public void toc() throws Exception {
         String testInput = "# Heading Level 1\n" +
                 "## Heading Level 2\n" +
@@ -170,7 +172,7 @@ public class JemParserTest {
         assertEquals(expectedOutput, jemParser.toc());
     }
 
-    @org.junit.Test
+    @Test
     public void markdown_headings() throws Exception {
         String testInput = "# Heading Level 1\n" +
                 "## Heading Level 2\n" +
@@ -180,7 +182,7 @@ public class JemParserTest {
         assertEquals(testInput, jemParser.markdown());
     }
 
-    @org.junit.Test
+    @Test
     public void markdown_list() throws Exception {
         String testInput = "* List item 1\n" +
                 "* List item 2\n" +
@@ -189,7 +191,7 @@ public class JemParserTest {
         assertEquals(testInput, jemParser.markdown());
     }
 
-    @org.junit.Test
+    @Test
     public void markdown_pre() throws Exception {
         String testInput = "```bash\n" +
                 "youtube-dl -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio' --merge-output-format mp4 \"$@\"\n" +
@@ -198,7 +200,7 @@ public class JemParserTest {
         assertEquals(testInput, jemParser.markdown());
     }
 
-    @org.junit.Test
+    @Test
     public void markdown_linkNoAltText() throws Exception {
         String testInput = "=> https://prsv.net/\n";
         String expectedOutput = "[https://prsv.net/](https://prsv.net/)\n\n";
@@ -206,7 +208,7 @@ public class JemParserTest {
         assertEquals(expectedOutput, jemParser.markdown());
     }
 
-    @org.junit.Test
+    @Test
     public void markdown_linkAltText() throws Exception {
         String testInput = "=> https://prsv.net/ My homepage\n";
         String expectedOutput = "[My homepage](https://prsv.net/)\n\n";
@@ -214,7 +216,7 @@ public class JemParserTest {
         assertEquals(expectedOutput, jemParser.markdown());
     }
 
-    @org.junit.Test
+    @Test
     public void markdown_linkNoExpandedImage() throws Exception {
         String testInput = "=> https://prsv.net/logo.png\n";
         String expectedOutput = "[https://prsv.net/logo.png](https://prsv.net/logo.png)\n\n";
@@ -222,7 +224,7 @@ public class JemParserTest {
         assertEquals(expectedOutput, jemParser.markdown(false));
     }
 
-    @org.junit.Test
+    @Test
     public void markdown_linkExpandedImage() throws Exception {
         String testInput = "=> https://prsv.net/logo.png\n";
         String expectedOutput = "![https://prsv.net/logo.png](https://prsv.net/logo.png)\n\n";
@@ -230,7 +232,7 @@ public class JemParserTest {
         assertEquals(expectedOutput, jemParser.markdown());
     }
 
-    @org.junit.Test
+    @Test
     public void markdown_linkExpandedImageAltText() throws Exception {
         String testInput = "=> https://prsv.net/logo.png My beautiful logo\n";
         String expectedOutput = "![My beautiful logo](https://prsv.net/logo.png)\n\n";
@@ -238,7 +240,7 @@ public class JemParserTest {
         assertEquals(expectedOutput, jemParser.markdown());
     }
 
-    @org.junit.Test
+    @Test
     public void markdown_hr() throws Exception {
         String testInput = "===\n";
         String expectedOutput = "---\n\n";
@@ -246,10 +248,10 @@ public class JemParserTest {
         assertEquals(expectedOutput, jemParser.markdown());
     }
 
-    @org.junit.Test
+    @Test
     public void markdown_blockquote() throws Exception {
         String testInput = "> This is my beautiful >blockquote<\n";
-        String expectedOutput = "> This is my beautiful &gt;blockquote&lt;\n";
+        String expectedOutput = "> This is my beautiful \\>blockquote\\<\n";
         jemParser.parse(testInput);
         assertEquals(expectedOutput, jemParser.markdown());
     }

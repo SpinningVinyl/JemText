@@ -12,13 +12,13 @@ public class JemParser {
 
     private final Pattern LINK_PATTERN = Pattern.compile("^=>\\s*(\\S+)\\s*(.*)$");
     private final Pattern IMAGE_URL_PATTERN = Pattern.compile("^\\S*\\.(?i)(gif|jpeg|jpg|jfif|png)$");
-    private final Pattern H1_PATTERN = Pattern.compile("^#\\s+(.*)$");
-    private final Pattern H2_PATTERN = Pattern.compile("^##\\s+(.*)$");
-    private final Pattern H3_PATTERN = Pattern.compile("^###\\s+(.*)$");
+    private final Pattern H1_PATTERN = Pattern.compile("^#(?!#)\\s*(.*)$");
+    private final Pattern H2_PATTERN = Pattern.compile("^##(?!#)\\s*(.*)$");
+    private final Pattern H3_PATTERN = Pattern.compile("^###(?!#)\\s*(.*)$");
     private final Pattern HR_PATTERN = Pattern.compile("^===$");
     private final Pattern LI_PATTERN = Pattern.compile("^\\*\\s+(.*)$");
     private final Pattern PRE_PATTERN = Pattern.compile("^```(.*)$");
-    private final Pattern PASSTHRU_PATTERN = Pattern.compile("^\\+\\+\\+$");
+    private final Pattern PASSTHRU_PATTERN = Pattern.compile("^\\+\\+\\+\\+\\+$");
     private final Pattern BLOCKQUOTE_PATTERN = Pattern.compile("^>\\s*(.*)$");
 
     // converts input into a stream of unambiguous tokens
@@ -38,20 +38,19 @@ public class JemParser {
         int headingCount = 0;
 
         for (String line : lines) {
-            String strippedLine = line.strip();
-            Matcher linkMatcher = LINK_PATTERN.matcher(strippedLine);
-            Matcher h1Matcher = H1_PATTERN.matcher(strippedLine);
-            Matcher h2Matcher = H2_PATTERN.matcher(strippedLine);
-            Matcher h3Matcher = H3_PATTERN.matcher(strippedLine);
-            Matcher hrMatcher = HR_PATTERN.matcher(strippedLine);
-            Matcher liMatcher = LI_PATTERN.matcher(strippedLine);
-            Matcher preMatcher = PRE_PATTERN.matcher(strippedLine);
-            Matcher passthruMatcher = PASSTHRU_PATTERN.matcher(strippedLine);
-            Matcher bqMatcher = BLOCKQUOTE_PATTERN.matcher(strippedLine);
+            Matcher linkMatcher = LINK_PATTERN.matcher(line);
+            Matcher h1Matcher = H1_PATTERN.matcher(line);
+            Matcher h2Matcher = H2_PATTERN.matcher(line);
+            Matcher h3Matcher = H3_PATTERN.matcher(line);
+            Matcher hrMatcher = HR_PATTERN.matcher(line);
+            Matcher liMatcher = LI_PATTERN.matcher(line);
+            Matcher preMatcher = PRE_PATTERN.matcher(line);
+            Matcher passthruMatcher = PASSTHRU_PATTERN.matcher(line);
+            Matcher bqMatcher = BLOCKQUOTE_PATTERN.matcher(line);
 
             JemToken token = new JemToken();
 
-            if(preMatcher.find()) {
+            if(preMatcher.find() && !passthru) {
                 pre = !pre;
                 if (pre) {
                     token.type = JemToken.Type.JT_PRE_BEGIN;
@@ -60,7 +59,7 @@ public class JemParser {
                 }
                 else
                     token.type = JemToken.Type.JT_PRE_END;
-            } else if (passthruMatcher.find()) {
+            } else if (passthruMatcher.find() && !pre) {
                 passthru = !passthru;
                 if (passthru)
                     token.type = JemToken.Type.JT_PASSTHRU_BEGIN;
@@ -297,6 +296,7 @@ public class JemParser {
                             output.append(" ");
                             output.append(token.heading.text);
                             output.append('\n');
+                            break;
                         case JT_TEXT:
                         case JT_PRE_TEXT:
                             if (token.text != null) {
@@ -330,28 +330,29 @@ public class JemParser {
                         case JT_LINK:
                             Matcher m = IMAGE_URL_PATTERN.matcher(token.link.url);
                             if(expandImages && m.find()) {
-                                output.append(String.format("![%s](%s)\n\n", token.link.altText,
-                                        token.link.url));
+                                output.append(String.format("![%s](%s)\n\n", JTUtils.mdEncode(token.link.altText),
+                                        JTUtils.mdEncode(token.link.url)));
                             } else {
-                                output.append(String.format("[%s](%s)\n\n", token.link.altText,
-                                        token.link.url));
+                                output.append(String.format("[%s](%s)\n\n", JTUtils.mdEncode(token.link.altText),
+                                        JTUtils.mdEncode(token.link.url)));
                             }
                             break;
                         case JT_BLOCKQUOTE:
                             output.append("> ");
-                            output.append(JTUtils.htmlEncode(token.text));
+                            output.append(JTUtils.mdEncode(token.text));
                             output.append('\n');
                             break;
                         case JT_LIST_ITEM:
                             output.append("* ");
-                            output.append(token.text);
+                            output.append(JTUtils.mdEncode(token.text));
                             output.append('\n');
                             break;
                         case JT_HEADING:
                             output.append("#".repeat(token.heading.level));
                             output.append(" ");
-                            output.append(token.heading.text);
+                            output.append(JTUtils.mdEncode(token.heading.text));
                             output.append('\n');
+                            break;
                         case JT_TEXT:
                             if (token.text != null) {
                                 output.append(JTUtils.mdEncode(token.text));
@@ -369,6 +370,7 @@ public class JemParser {
                                 output.append(token.text);
                                 output.append('\n');
                             }
+                            break;
                         case JT_HR:
                             output.append("---\n\n");
                     }
