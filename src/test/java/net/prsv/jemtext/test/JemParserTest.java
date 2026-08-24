@@ -67,6 +67,23 @@ public class JemParserTest {
     }
 
     @Test
+    public void html_passthru_script() throws Exception {
+        String testInput = "+++++\n" +
+                "<div>Before</div>\n" +
+                "<SCRIPT>\n" +
+                "alert('not safe');\n" +
+                "</SCRIPT>\n" +
+                "<div>After</div>\n" +
+                "+++++\n";
+        jemParser.parse(testInput);
+        String output = jemParser.html();
+        assertFalse(output.contains("<SCRIPT>"));
+        assertFalse(output.contains("alert('not safe');"));
+        assertTrue(output.contains("<div>Before</div>"));
+        assertTrue(output.contains("<div>After</div>"));
+    }
+
+    @Test
     public void html_hr() throws Exception {
         String testInput = "===";
         String expectedOutput = "<hr />\n";

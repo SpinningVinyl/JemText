@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 public class JemParser {
 
     private String title = null;
+    private boolean inPassthruScript = false;
 
     private final ArrayList<JemToken> tokenStream = new ArrayList<>();
 
@@ -20,6 +21,8 @@ public class JemParser {
     private final Pattern PRE_PATTERN = Pattern.compile("^```(.*)$");
     private final Pattern PASSTHRU_PATTERN = Pattern.compile("^\\+\\+\\+\\+\\+$");
     private final Pattern BLOCKQUOTE_PATTERN = Pattern.compile("^>\\s*(.*)$");
+    private final Pattern SCRIPT_OPEN_PATTERN = Pattern.compile("<script\\b[^>]*>", Pattern.CASE_INSENSITIVE);
+    private final Pattern SCRIPT_CLOSE_PATTERN = Pattern.compile("</script\\s*>", Pattern.CASE_INSENSITIVE);
 
     // converts input into a stream of unambiguous tokens
     // also sets the first level 1 heading as this.title
@@ -27,11 +30,12 @@ public class JemParser {
         // resetting the state of the parser
         tokenStream.clear();
         title = null;
+        inPassthruScript = false;
 
         // if input is null, don't attempt to parse
         if (input == null) return;
 
-        String[] lines = input.split("\\R");
+        String[] lines = input.split("\\R", -1);
 
         boolean pre = false;
         boolean passthru = false;
@@ -61,6 +65,9 @@ public class JemParser {
                     token.type = JemToken.Type.JT_PRE_END;
             } else if (passthruMatcher.find() && !pre) {
                 passthru = !passthru;
+                if (!passthru) {
+                    inPassthruScript = false;
+                }
                 if (passthru)
                     token.type = JemToken.Type.JT_PASSTHRU_BEGIN;
                 else
@@ -70,7 +77,7 @@ public class JemParser {
                 token.text = line;
             } else if(passthru) {
                 token.type = JemToken.Type.JT_PASSTHRU_TEXT;
-                token.text = line;
+                token.text = stripPassthruScripts(line);
             } else if (linkMatcher.find()) {
                 token.type = JemToken.Type.JT_LINK;
                 token.link.url = linkMatcher.group(1);
@@ -110,6 +117,33 @@ public class JemParser {
             }
             tokenStream.add(token);
         }
+    }
+
+    private String stripPassthruScripts(String line) {
+        StringBuilder output = new StringBuilder();
+        int offset = 0;
+        while (offset < line.length()) {
+            if (inPassthruScript) {
+                Matcher closeMatcher = SCRIPT_CLOSE_PATTERN.matcher(line);
+                if (!closeMatcher.find(offset)) {
+                    return output.toString();
+                }
+                inPassthruScript = false;
+                offset = closeMatcher.end();
+            } else {
+                Matcher openMatcher = SCRIPT_OPEN_PATTERN.matcher(line);
+                if (!openMatcher.find(offset)) {
+                    output.append(line, offset, line.length());
+                    break;
+                }
+                output.append(line, offset, openMatcher.start());
+                if (!openMatcher.group().trim().endsWith("/>")) {
+                    inPassthruScript = true;
+                }
+                offset = openMatcher.end();
+            }
+        }
+        return output.toString();
     }
 
     // renders the token stream as HTML
